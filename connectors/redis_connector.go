@@ -13,7 +13,7 @@ import (
 var Client *redis.Client
 
 func ConnectToRedis() (bool, error) {
-	opt, parseErr := redis.ParseURL(os.Getenv("REDIS_URL"))
+	opt, parseErr := redis.ParseURL(os.Getenv("REDIS_LOCAL"))
 	if parseErr != nil {
 		log.Fatalf("Error in parsing the url")
 	}
@@ -57,4 +57,32 @@ func GeoSearch(key string, lat float64, lng float64, radius float64) []redis.Geo
 	}
 
 	return locations
+}
+
+func Set(key string, value interface{}, expiry time.Duration) {
+	response := Client.Set(context.Background(), key, value, expiry)
+
+	println(response)
+}
+
+func Get(key string) string {
+	println(key)
+	response := Client.Get(context.Background(), key)
+
+	val, err := response.Result()
+	if val == "" {
+		println("Error in getting the result", err.Error(), val)
+		return ""
+	}
+
+	return val
+}
+
+func Subscribe(channel string) {
+	Client.Subscribe(context.Background(), channel)
+
+}
+
+func Publish(channel string, message interface{}) {
+	Client.Publish(context.Background(), "", message)
 }

@@ -13,6 +13,7 @@ func Router() {
 	router.Use(mux.CORSMethodMiddleware(router))
 	router.HandleFunc("/ws", controllers.WsController)
 	router.HandleFunc("/friends", controllers.GetPeopleWithInXKm).Methods("GET")
+	router.HandleFunc("/friends/{userName}", controllers.GetFriends).Methods("GET")
 
 	router.HandleFunc("/users", controllers.GetUsersController).Methods("GET")
 	router.HandleFunc("/users", controllers.CreateUser).Methods(http.MethodGet, http.MethodPut, http.MethodPost, http.MethodPatch, http.MethodOptions)
