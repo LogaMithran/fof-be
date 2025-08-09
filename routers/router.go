@@ -19,6 +19,9 @@ func Router() {
 	router.HandleFunc("/users", controllers.CreateUser).Methods(http.MethodGet, http.MethodPut, http.MethodPost, http.MethodPatch, http.MethodOptions)
 	router.HandleFunc("/addFriend", controllers.AddFriendController).Methods("PUT")
 
+	playerRouter := router.PathPrefix("/player/v1").Subrouter()
+	Initialize(playerRouter)
+
 	fmt.Println("Server started on 8080")
 	http.Handle("/", router)
 	if httpErr := http.ListenAndServe(":8080", nil); httpErr != nil {
