@@ -86,3 +86,23 @@ func Subscribe(channel string) {
 func Publish(channel string, message interface{}) {
 	Client.Publish(context.Background(), "", message)
 }
+
+func SortedSetGet(context context.Context, key string, start, stop int64) ([]redis.Z, error) {
+	result, err := Client.ZRevRangeWithScores(context, key, start, stop).Result()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func GetRank(ctx context.Context, key string, member string) (int64, error) {
+	result, err := Client.ZRevRank(ctx, key, member).Result()
+
+	if err != nil {
+		return 0, err
+	}
+
+	return result + 1, nil
+}
