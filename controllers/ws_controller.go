@@ -37,20 +37,22 @@ func WsController(response http.ResponseWriter, request *http.Request) {
 	}
 
 	defer func() {
+		mutex.Lock()
 		connection.Close()
 		delete(activeConnections, wsMessage.UserName)
+		mutex.Unlock()
 	}()
 
 	for {
 		_, message, readErr := connection.ReadMessage()
 
 		if readErr != nil {
-			fmt.Println("Error in reading the message")
+			fmt.Println("Error in reading the message", readErr.Error())
 			return
 		}
 
 		if parseErr := json.Unmarshal(message, &wsMessage); parseErr != nil {
-			fmt.Println("Error in parsing the message", parseErr)
+			fmt.Println("Error in parsing the message", parseErr.Error())
 			return
 		}
 
@@ -62,7 +64,7 @@ func WsController(response http.ResponseWriter, request *http.Request) {
 		activeConnections[wsConn.userName] = wsConn
 		mutex.Unlock()
 
-		go AddUserToGeo(wsMessage)
+		AddUserToGeo(wsMessage)
 	}
 }
 
@@ -76,7 +78,7 @@ func AddUserToGeo(wsMessage WsMessage) {
 	value, _ := json.Marshal(wsMessage)
 	connectors.Set(wsMessage.UserName, string(value), 24*time.Hour)
 
-	go getSurroundingUsers(wsMessage, activeConnections)
+	getSurroundingUsers(wsMessage, activeConnections)
 }
 
 func getSurroundingUsers(wsMessage WsMessage, activeConnections map[string]*wsConnection) {
@@ -88,12 +90,15 @@ func getSurroundingUsers(wsMessage WsMessage, activeConnections map[string]*wsCo
 	location := connectors.GeoSearch("user-location", wsMessage.Lat, wsMessage.Lng, 100)
 	location = CheckIfActive(location)
 
+	mutex.Lock()
 	for _, geoLocation := range location {
-		message := fmt.Sprintf("Spotted %s", wsMessage.UserName)
 		if activeConnections[geoLocation.Name].userName != "" && wsMessage.UserName != activeConnections[geoLocation.Name].userName {
+			message := fmt.Sprintf("Spotted %s", wsMessage.UserName)
+			println("Pushing to client", string(message))
 			if err := activeConnections[geoLocation.Name].wsConnection.WriteMessage(1, []byte(message)); err != nil {
 				println("Error in sending the message to client", err)
 			}
 		}
 	}
+	mutex.Unlock()
 }
