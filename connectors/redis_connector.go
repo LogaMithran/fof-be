@@ -31,7 +31,6 @@ func ConnectToRedis() (bool, error) {
 }
 
 func GeolocationAdd(key string, location services.Location, name string) {
-	println("NAME", name, key, location.Longitude, location.Latitude)
 	if res := Client.GeoAdd(context.Background(), key, &redis.GeoLocation{
 		Longitude: location.Longitude,
 		Latitude:  location.Latitude,
@@ -66,7 +65,6 @@ func Set(key string, value interface{}, expiry time.Duration) {
 }
 
 func Get(key string) string {
-	println(key)
 	response := Client.Get(context.Background(), key)
 
 	val, err := response.Result()
