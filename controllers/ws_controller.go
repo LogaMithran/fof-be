@@ -84,7 +84,7 @@ func AddUserToGeo(wsMessage WsMessage) {
 func getSurroundingUsers(wsMessage WsMessage, activeConnections map[string]*wsConnection) {
 	defer func() {
 		if r := recover(); r != nil {
-			println("Error in writing back to sockets")
+			println("Error in writing back to sockets", r)
 		}
 	}()
 	location := connectors.GeoSearch("user-location", wsMessage.Lat, wsMessage.Lng, 100)
